@@ -18,90 +18,74 @@ type UserSubscription = {
 
 type FormData = {
   planId: string;
-  buyer: {
-    surname: string;
-    firstName: string;
-    middleName: string;
-    gender: string;
-    nationality: string;
-    dob: string;
-    email: string;
-    phone: string;
-    occupation: string;
-    address: {
-      houseNumber: string;
-      streetName: string;
-      city: string;
-      lga: string;
-      state: string;
-      country: string;
-    };
-    nin: string;
-  };
-  grantor: {
-    surname: string;
-    firstName: string;
-    middleName: string;
-    gender: string;
-    nationality: string;
-    dob: string;
-    email: string;
-    phone: string;
-    occupation: string;
-    address: {
-      houseNumber: string;
-      streetName: string;
-      city: string;
-      lga: string;
-      state: string;
-      country: string;
-    };
-    nin: string;
-  };
+  phone: string;
+  surname: string;
+  firstName: string;
+  middleName: string;
+  gender: string;
+  nationality: string;
+  dob: string;
+  email: string;
+  occupation: string;
+  houseNumber: string;
+  streetName: string;
+  city: string;
+  lga: string;
+  state: string;
+  country: string;
+  nin: string;
+  grantorSurname: string;
+  grantorFirstName: string;
+  grantorMiddleName: string;
+  grantorGender: string;
+  grantorNationality: string;
+  grantorDob: string;
+  grantorEmail: string;
+  grantorPhone: string;
+  grantorOccupation: string;
+  grantorHouseNumber: string;
+  grantorStreetName: string;
+  grantorCity: string;
+  grantorLga: string;
+  grantorState: string;
+  grantorCountry: string;
+  grantorNin: string;
 };
 
 const initialFormData: FormData = {
   planId: '',
-  buyer: {
-    surname: '',
-    firstName: '',
-    middleName: '',
-    gender: '',
-    nationality: '',
-    dob: '',
-    email: '',
-    phone: '',
-    occupation: '',
-    address: {
-      houseNumber: '',
-      streetName: '',
-      city: '',
-      lga: '',
-      state: '',
-      country: ''
-    },
-    nin: ''
-  },
-  grantor: {
-    surname: '',
-    firstName: '',
-    middleName: '',
-    gender: '',
-    nationality: '',
-    dob: '',
-    email: '',
-    phone: '',
-    occupation: '',
-    address: {
-      houseNumber: '',
-      streetName: '',
-      city: '',
-      lga: '',
-      state: '',
-      country: ''
-    },
-    nin: ''
-  }
+  phone: '',
+  surname: '',
+  firstName: '',
+  middleName: '',
+  gender: '',
+  nationality: '',
+  dob: '',
+  email: '',
+  occupation: '',
+  houseNumber: '',
+  streetName: '',
+  city: '',
+  lga: '',
+  state: '',
+  country: '',
+  nin: '',
+  grantorSurname: '',
+  grantorFirstName: '',
+  grantorMiddleName: '',
+  grantorGender: '',
+  grantorNationality: '',
+  grantorDob: '',
+  grantorEmail: '',
+  grantorPhone: '',
+  grantorOccupation: '',
+  grantorHouseNumber: '',
+  grantorStreetName: '',
+  grantorCity: '',
+  grantorLga: '',
+  grantorState: '',
+  grantorCountry: '',
+  grantorNin: ''
 };
 
 export default function SolarOrder() {
@@ -112,6 +96,7 @@ export default function SolarOrder() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [userSub, setUserSub] = useState<UserSubscription | null>(null);
   const [loading, setLoading] = useState(true);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -128,9 +113,9 @@ export default function SolarOrder() {
           setPlans(plansData);
         } else {
           setPlans([
-            { id: '300w', title: '300W & 100W Panel', price: 50000, description: 'Perfect for small energy needs.', specs: ['300W Inverter', '100W Solar Panel'] },
-            { id: '1000w', title: '1000W & 450W Panel', price: 150000, description: 'Ideal for medium homes.', specs: ['1000W Inverter', '450W Solar Panel'] },
-            { id: '3300w', title: '3300W & 1300W Panels', price: 500000, description: 'High capacity for full home.', specs: ['3300W Inverter', '1300W Solar Panels'] }
+            { id: 'plan-300w', title: '300W & 100W Panel', price: 50000, description: 'Perfect for small energy needs.', specs: ['300W Inverter', '100W Solar Panel'] },
+            { id: 'plan-1000w', title: '1000W & 450W Panel', price: 150000, description: 'Ideal for medium homes.', specs: ['1000W Inverter', '450W Solar Panel'] },
+            { id: 'plan-3300w', title: '3300W & 1300W Panels', price: 500000, description: 'High capacity for full home.', specs: ['3300W Inverter', '1300W Solar Panels'] }
           ]);
         }
 
@@ -147,63 +132,38 @@ export default function SolarOrder() {
     };
 
     fetchData();
-  }, []);
+  }, [API_BASE_URL]);
 
   const handlePlanSelect = (planId: string) => {
     setFormData({ ...formData, planId });
     setStep(2);
   };
 
-  const updateBuyerField = (field: string, value: string) => {
+  const updateField = (field: keyof FormData, value: string) => {
     setFormData({
       ...formData,
-      buyer: { ...formData.buyer, [field]: value }
-    });
-  };
-
-  const updateBuyerAddress = (field: string, value: string) => {
-    setFormData({
-      ...formData,
-      buyer: {
-        ...formData.buyer,
-        address: { ...formData.buyer.address, [field]: value }
-      }
-    });
-  };
-
-  const updateGrantorField = (field: string, value: string) => {
-    setFormData({
-      ...formData,
-      grantor: { ...formData.grantor, [field]: value }
-    });
-  };
-
-  const updateGrantorAddress = (field: string, value: string) => {
-    setFormData({
-      ...formData,
-      grantor: {
-        ...formData.grantor,
-        address: { ...formData.grantor.address, [field]: value }
-      }
+      [field]: value
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/subscription/solar`, {
+      const response = await fetch(`${API_BASE_URL}/subscription/solar/public`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
-      if (response.ok) {
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setSuccessMessage(data.message);
         setStep(5);
         const subRes = await fetch(`${API_BASE_URL}/subscription/solar`);
         if (subRes.ok) setUserSub(await subRes.json());
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        setError(errorData.message || 'Failed to submit subscription.');
+        setError(data.message || 'Failed to submit subscription.');
       }
     } catch (error) {
       console.error('Error submitting order:', error);
@@ -214,17 +174,21 @@ export default function SolarOrder() {
   };
 
   const validateStep = (currentStep: number) => {
-    const data = currentStep === 2 ? formData.buyer : formData.grantor;
-    const requiredFields = [
-      'surname', 'firstName', 'gender', 'nationality', 'email', 'phone', 'occupation', 'nin'
-    ];
-    const addr = data.address;
-    const requiredAddr = ['houseNumber', 'streetName', 'city', 'lga', 'state', 'country'];
-
-    const isDataValid = requiredFields.every(field => (data as any)[field]?.trim());
-    const isAddrValid = requiredAddr.every(field => (addr as any)[field]?.trim());
-
-    return isDataValid && isAddrValid;
+    if (currentStep === 2) {
+      const buyerFields: (keyof FormData)[] = [
+        'surname', 'firstName', 'gender', 'nationality', 'email', 'phone', 'occupation', 'nin',
+        'houseNumber', 'streetName', 'city', 'lga', 'state', 'country'
+      ];
+      return buyerFields.every(field => formData[field]?.trim());
+    }
+    if (currentStep === 3) {
+      const grantorFields: (keyof FormData)[] = [
+        'grantorSurname', 'grantorFirstName', 'grantorGender', 'grantorNationality', 'grantorEmail', 'grantorPhone', 'grantorOccupation', 'grantorNin',
+        'grantorHouseNumber', 'grantorStreetName', 'grantorCity', 'grantorLga', 'grantorState', 'grantorCountry'
+      ];
+      return grantorFields.every(field => formData[field]?.trim());
+    }
+    return true;
   };
 
   const renderStep = () => {
@@ -379,16 +343,16 @@ export default function SolarOrder() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-10">
-                <Input icon={<User />} label="Full Surname" value={formData.buyer.surname} onChange={(v) => updateBuyerField('surname', v)} placeholder="e.g., Doe" />
-                <Input icon={<User />} label="First Given Name" value={formData.buyer.firstName} onChange={(v) => updateBuyerField('firstName', v)} placeholder="e.g., John" />
-                <Input icon={<User />} label="Middle Initial/Name" value={formData.buyer.middleName} onChange={(v) => updateBuyerField('middleName', v)} placeholder="Optional" />
-                <Select icon={<ShieldCheck />} label="Biological Gender" value={formData.buyer.gender} options={['Male', 'Female', 'Non-binary']} onChange={(v) => updateBuyerField('gender', v)} />
-                <Input icon={<Info />} label="Home Nationality" value={formData.buyer.nationality} onChange={(v) => updateBuyerField('nationality', v)} placeholder="e.g., Nigerian" />
-                <Input icon={<Info />} label="Date of Birth" type="date" value={formData.buyer.dob} onChange={(v) => updateBuyerField('dob', v)} required={false} />
-                <Input icon={<Info />} label="Personal Email" type="email" value={formData.buyer.email} onChange={(v) => updateBuyerField('email', v)} placeholder="hello@zod.com" />
-                <Input icon={<Info />} label="Mobile Phone" type="tel" value={formData.buyer.phone} onChange={(v) => updateBuyerField('phone', v)} placeholder="+234..." />
-                <Input icon={<Info />} label="Current Occupation" value={formData.buyer.occupation} onChange={(v) => updateBuyerField('occupation', v)} placeholder="e.g., Tech Professional" />
-                <Input icon={<ShieldCheck />} label="National ID (NIN)" value={formData.buyer.nin} onChange={(v) => updateBuyerField('nin', v)} placeholder="11-digit number" />
+                <Input icon={<User />} label="Full Surname" value={formData.surname} onChange={(v) => updateField('surname', v)} placeholder="e.g., Doe" />
+                <Input icon={<User />} label="First Given Name" value={formData.firstName} onChange={(v) => updateField('firstName', v)} placeholder="e.g., John" />
+                <Input icon={<User />} label="Middle Initial/Name" value={formData.middleName} onChange={(v) => updateField('middleName', v)} placeholder="Optional" />
+                <Select icon={<ShieldCheck />} label="Biological Gender" value={formData.gender} options={['Male', 'Female', 'Non-binary']} onChange={(v) => updateField('gender', v)} />
+                <Input icon={<Info />} label="Home Nationality" value={formData.nationality} onChange={(v) => updateField('nationality', v)} placeholder="e.g., Nigerian" />
+                <Input icon={<Info />} label="Date of Birth" type="date" value={formData.dob} onChange={(v) => updateField('dob', v)} required={false} />
+                <Input icon={<Info />} label="Personal Email" type="email" value={formData.email} onChange={(v) => updateField('email', v)} placeholder="hello@zod.com" />
+                <Input icon={<Info />} label="Mobile Phone" type="tel" value={formData.phone} onChange={(v) => updateField('phone', v)} placeholder="+234..." />
+                <Input icon={<Info />} label="Current Occupation" value={formData.occupation} onChange={(v) => updateField('occupation', v)} placeholder="e.g., Tech Professional" />
+                <Input icon={<ShieldCheck />} label="National ID (NIN)" value={formData.nin} onChange={(v) => updateField('nin', v)} placeholder="11-digit number" />
               </div>
 
               <div className="space-y-8 pt-8 border-t border-white/10">
@@ -399,12 +363,12 @@ export default function SolarOrder() {
                   <h3 className="text-xl font-bold text-white tracking-wide">Residential Address</h3>
                 </div>
                 <div className="grid md:grid-cols-3 gap-8">
-                  <Input label="House/Bldg No." value={formData.buyer.address.houseNumber} onChange={(v) => updateBuyerAddress('houseNumber', v)} />
-                  <Input label="Street Address" value={formData.buyer.address.streetName} onChange={(v) => updateBuyerAddress('streetName', v)} />
-                  <Input label="City/Locality" value={formData.buyer.address.city} onChange={(v) => updateBuyerAddress('city', v)} />
-                  <Input label="LGA/District" value={formData.buyer.address.lga} onChange={(v) => updateBuyerAddress('lga', v)} />
-                  <Input label="Region/State" value={formData.buyer.address.state} onChange={(v) => updateBuyerAddress('state', v)} />
-                  <Input label="Country Origin" value={formData.buyer.address.country} onChange={(v) => updateBuyerAddress('country', v)} />
+                  <Input label="House/Bldg No." value={formData.houseNumber} onChange={(v) => updateField('houseNumber', v)} />
+                  <Input label="Street Address" value={formData.streetName} onChange={(v) => updateField('streetName', v)} />
+                  <Input label="City/Locality" value={formData.city} onChange={(v) => updateField('city', v)} />
+                  <Input label="LGA/District" value={formData.lga} onChange={(v) => updateField('lga', v)} />
+                  <Input label="Region/State" value={formData.state} onChange={(v) => updateField('state', v)} />
+                  <Input label="Country Origin" value={formData.country} onChange={(v) => updateField('country', v)} />
                 </div>
               </div>
 
@@ -440,16 +404,16 @@ export default function SolarOrder() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-10">
-                <Input icon={<User />} label="Guarantor Surname" value={formData.grantor.surname} onChange={(v) => updateGrantorField('surname', v)} />
-                <Input icon={<User />} label="Guarantor First Name" value={formData.grantor.firstName} onChange={(v) => updateGrantorField('firstName', v)} />
-                <Input icon={<User />} label="Guarantor Middle Name" value={formData.grantor.middleName} onChange={(v) => updateGrantorField('middleName', v)} />
-                <Select icon={<ShieldCheck />} label="Guarantor Gender" value={formData.grantor.gender} options={['Male', 'Female', 'Other']} onChange={(v) => updateGrantorField('gender', v)} />
-                <Input icon={<Info />} label="Nationality" value={formData.grantor.nationality} onChange={(v) => updateGrantorField('nationality', v)} />
-                <Input icon={<Info />} label="Date of Birth" type="date" value={formData.grantor.dob} onChange={(v) => updateGrantorField('dob', v)} required={false} />
-                <Input icon={<Info />} label="Email Primary" type="email" value={formData.grantor.email} onChange={(v) => updateGrantorField('email', v)} />
-                <Input icon={<Info />} label="Contact Phone" type="tel" value={formData.grantor.phone} onChange={(v) => updateGrantorField('phone', v)} />
-                <Input icon={<Info />} label="Profession" value={formData.grantor.occupation} onChange={(v) => updateGrantorField('occupation', v)} />
-                <Input icon={<ShieldCheck />} label="NIN Identification" value={formData.grantor.nin} onChange={(v) => updateGrantorField('nin', v)} />
+                <Input icon={<User />} label="Guarantor Surname" value={formData.grantorSurname} onChange={(v) => updateField('grantorSurname', v)} />
+                <Input icon={<User />} label="Guarantor First Name" value={formData.grantorFirstName} onChange={(v) => updateField('grantorFirstName', v)} />
+                <Input icon={<User />} label="Guarantor Middle Name" value={formData.grantorMiddleName} onChange={(v) => updateField('grantorMiddleName', v)} />
+                <Select icon={<ShieldCheck />} label="Guarantor Gender" value={formData.grantorGender} options={['Male', 'Female', 'Other']} onChange={(v) => updateField('grantorGender', v)} />
+                <Input icon={<Info />} label="Nationality" value={formData.grantorNationality} onChange={(v) => updateField('grantorNationality', v)} />
+                <Input icon={<Info />} label="Date of Birth" type="date" value={formData.grantorDob} onChange={(v) => updateField('grantorDob', v)} required={false} />
+                <Input icon={<Info />} label="Email Primary" type="email" value={formData.grantorEmail} onChange={(v) => updateField('grantorEmail', v)} />
+                <Input icon={<Info />} label="Contact Phone" type="tel" value={formData.grantorPhone} onChange={(v) => updateField('grantorPhone', v)} />
+                <Input icon={<Info />} label="Profession" value={formData.grantorOccupation} onChange={(v) => updateField('grantorOccupation', v)} />
+                <Input icon={<ShieldCheck />} label="NIN Identification" value={formData.grantorNin} onChange={(v) => updateField('grantorNin', v)} />
               </div>
 
               <div className="space-y-8 pt-8 border-t border-white/10">
@@ -460,12 +424,12 @@ export default function SolarOrder() {
                   <h3 className="text-xl font-bold text-white tracking-wide">Residential Address</h3>
                 </div>
                 <div className="grid md:grid-cols-3 gap-8">
-                  <Input label="House No." value={formData.grantor.address.houseNumber} onChange={(v) => updateGrantorAddress('houseNumber', v)} />
-                  <Input label="Street Name" value={formData.grantor.address.streetName} onChange={(v) => updateGrantorAddress('streetName', v)} />
-                  <Input label="City" value={formData.grantor.address.city} onChange={(v) => updateGrantorAddress('city', v)} />
-                  <Input label="LGA" value={formData.grantor.address.lga} onChange={(v) => updateGrantorAddress('lga', v)} />
-                  <Input label="State" value={formData.grantor.address.state} onChange={(v) => updateGrantorAddress('state', v)} />
-                  <Input label="Country" value={formData.grantor.address.country} onChange={(v) => updateGrantorAddress('country', v)} />
+                  <Input label="House No." value={formData.grantorHouseNumber} onChange={(v) => updateField('grantorHouseNumber', v)} />
+                  <Input label="Street Name" value={formData.grantorStreetName} onChange={(v) => updateField('grantorStreetName', v)} />
+                  <Input label="City" value={formData.grantorCity} onChange={(v) => updateField('grantorCity', v)} />
+                  <Input label="LGA" value={formData.grantorLga} onChange={(v) => updateField('grantorLga', v)} />
+                  <Input label="State" value={formData.grantorState} onChange={(v) => updateField('grantorState', v)} />
+                  <Input label="Country" value={formData.grantorCountry} onChange={(v) => updateField('grantorCountry', v)} />
                 </div>
               </div>
 
@@ -511,10 +475,10 @@ export default function SolarOrder() {
                       <h3 className="font-bold text-lg">Buyer Details</h3>
                     </div>
                     <div className="grid grid-cols-2 gap-y-4 text-sm">
-                      <div><span className="text-gray-500 block mb-0.5">Full Name</span> <span className="text-white font-medium">{formData.buyer.firstName} {formData.buyer.surname}</span></div>
-                      <div><span className="text-gray-500 block mb-0.5">Email</span> <span className="text-white font-medium truncate">{formData.buyer.email}</span></div>
-                      <div><span className="text-gray-500 block mb-0.5">Phone</span> <span className="text-white font-medium">{formData.buyer.phone}</span></div>
-                      <div><span className="text-gray-500 block mb-0.5">NIN</span> <span className="text-white font-medium">{formData.buyer.nin}</span></div>
+                      <div><span className="text-gray-500 block mb-0.5">Full Name</span> <span className="text-white font-medium">{formData.firstName} {formData.surname}</span></div>
+                      <div><span className="text-gray-500 block mb-0.5">Email</span> <span className="text-white font-medium truncate">{formData.email}</span></div>
+                      <div><span className="text-gray-500 block mb-0.5">Phone</span> <span className="text-white font-medium">{formData.phone}</span></div>
+                      <div><span className="text-gray-500 block mb-0.5">NIN</span> <span className="text-white font-medium">{formData.nin}</span></div>
                     </div>
                   </div>
 
@@ -524,8 +488,8 @@ export default function SolarOrder() {
                       <h3 className="font-bold text-lg">Guarantor Details</h3>
                     </div>
                     <div className="grid grid-cols-2 gap-y-4 text-sm">
-                      <div><span className="text-gray-500 block mb-0.5">Full Name</span> <span className="text-white font-medium">{formData.grantor.firstName} {formData.grantor.surname}</span></div>
-                      <div><span className="text-gray-500 block mb-0.5">Professional Origin</span> <span className="text-white font-medium">{formData.grantor.occupation}</span></div>
+                      <div><span className="text-gray-500 block mb-0.5">Full Name</span> <span className="text-white font-medium">{formData.grantorFirstName} {formData.grantorSurname}</span></div>
+                      <div><span className="text-gray-500 block mb-0.5">Professional Origin</span> <span className="text-white font-medium">{formData.grantorOccupation}</span></div>
                     </div>
                   </div>
                 </div>
@@ -612,7 +576,7 @@ export default function SolarOrder() {
 
             <h2 className="text-5xl font-black text-white mb-6">Mission Accomplished!</h2>
             <p className="text-xl text-gray-400 mb-12 leading-relaxed font-medium">
-              We've received your data and registered your interest in our solar energy program. Expect a call from our technical team within <span className="text-emerald-400 border-b-2 border-emerald-400/30">24 hours</span>.
+              {successMessage || "We've received your data and registered your interest in our solar energy program. Expect a call from our technical team within 24 hours."}
             </p>
             
             <div className="flex flex-col gap-4">
