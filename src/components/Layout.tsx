@@ -61,13 +61,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 Showcase
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-cyan-400 group-hover:w-full transition-all duration-300"></span>
               </Link>
-              <Link
-                to="/community"
+              <a
+                href="#solar"
                 className="text-sm font-medium text-gray-300 hover:text-white transition-colors relative group"
               >
-                Community
+                Solar
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-cyan-400 group-hover:w-full transition-all duration-300"></span>
-              </Link>
+              </a>
               <button className="relative group bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-2.5 rounded-full text-sm font-medium overflow-hidden">
                 <span className="relative z-10">Download App</span>
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -95,12 +95,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               >
                 Showcase
               </Link>
-              <Link
-                to="/community"
+              <a
+                href="#solar"
                 className="block text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
               >
-                Community
-              </Link>
+                Solar
+              </a>
               <button className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-2.5 rounded-full text-sm font-medium">
                 Download App
               </button>

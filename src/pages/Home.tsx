@@ -244,28 +244,28 @@ export default function Home() {
           title: 'Social Feed',
           desc: 'Share & Engage',
           gradient: 'from-cyan-500/20 to-blue-500/20',
-          image: '/Simulator Screenshot - iPhone 16 Pro Max - 2025-11-11 at 17.23.40.png',
+          image: 'https://i.postimg.cc/hGhz3Myc/Whats-App-Image-2026-04-21-at-20-57-03.jpg',
           rounded: 'rounded-[2rem_3rem_2rem_3rem]', // top-left, top-right, bottom-right, bottom-left
         },
         {
           title: 'Shop Gadgets',
           desc: 'Browse & Buy',
           gradient: 'from-emerald-500/20 to-teal-500/20',
-          image: '/Simulator Screenshot - iPhone 16 Pro Max - 2025-11-11 at 17.21.45.png',
+          image: 'https://i.postimg.cc/W4tFfSWN/Whats-App-Image-2026-04-21-at-20-57-05.jpg',
           rounded: 'rounded-[3rem_2rem_3rem_2rem]',
         },
         {
           title: 'Stay Connected',
           desc: 'Chat & Connect',
           gradient: 'from-cyan-500/20 to-blue-500/20',
-          image: '/Simulator Screenshot - iPhone 16 Pro Max - 2025-11-11 at 17.21.22.png',
+          image: 'https://i.postimg.cc/yN5gq952/Whats-App-Image-2026-04-21-at-20-57-04.jpg',
           rounded: 'rounded-[2.5rem_2rem_3rem_3rem]',
         },
         {
           title: 'Notifications',
           desc: 'Stay Updated',
           gradient: 'from-emerald-500/20 to-teal-500/20',
-          image: '/Simulator Screenshot - iPhone 16 Pro Max - 2025-11-11 at 17.23.56.png',
+          image: 'https://i.postimg.cc/SKj2tVTy/Whats-App-Image-2026-04-21-at-20-57-04-1.jpg',
           rounded: 'rounded-[3rem_3rem_2rem_2rem]',
         },
       ].map((screen, idx) => (
@@ -287,11 +287,6 @@ export default function Home() {
   />
   <div className="absolute inset-0 bg-gradient-to-t from-gray-950/80 to-transparent"></div>
 </div>
-
-            <div className="text-center px-2">
-              <h3 className="text-sm font-bold mb-1">{screen.title}</h3>
-              <p className="text-xs text-gray-400">{screen.desc}</p>
-            </div>
           </div>
         </div>
       ))}
@@ -384,7 +379,7 @@ export default function Home() {
 
       <SolarOrder />
 
-      <section className="py-32 relative overflow-hidden" ref={ctaSection.ref}>
+      <section id="solar" className="py-24 relative overflow-hidden" ref={ctaSection.ref}>
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-emerald-500/10"></div>
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
 
