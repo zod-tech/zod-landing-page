@@ -5,6 +5,7 @@ export default function Contact() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    inviteePhone: '',
     subject: '',
     message: '',
   });
@@ -105,6 +106,21 @@ export default function Contact() {
                     required
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-400 transition-colors duration-300"
                     placeholder="your.email@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="inviteePhone" className="block text-sm font-medium mb-2">
+                    Invitee Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    id="inviteePhone"
+                    name="inviteePhone"
+                    value={formData.inviteePhone}
+                    onChange={handleChange}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-400 transition-colors duration-300"
+                    placeholder="+234..."
                   />
                 </div>
               </div>

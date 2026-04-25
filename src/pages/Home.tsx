@@ -379,7 +379,7 @@ export default function Home() {
 
       <SolarOrder />
 
-      <section id="solar" className="py-24 relative overflow-hidden" ref={ctaSection.ref}>
+      <section id="cta" className="py-24 relative overflow-hidden" ref={ctaSection.ref}>
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-emerald-500/10"></div>
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
 

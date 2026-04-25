@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sun, CheckCircle2, ArrowRight, ArrowLeft, User, Home, ShieldCheck, Zap, Info, Star } from 'lucide-react';
+import { Sun, CheckCircle2, ArrowRight, ArrowLeft, User, Home, ShieldCheck, Zap, Info } from 'lucide-react';
 
 type Plan = {
   id: string;
@@ -19,6 +19,7 @@ type UserSubscription = {
 type FormData = {
   planId: string;
   phone: string;
+  inviteePhone: string;
   surname: string;
   firstName: string;
   middleName: string;
@@ -52,9 +53,45 @@ type FormData = {
   grantorNin: string;
 };
 
+const DEFAULT_PLANS: Plan[] = [
+  {
+    id: 'plan-300w',
+    title: '300W & 100W Panel',
+    price: 50000,
+    description: 'Perfect for small energy needs.',
+    specs: ['300W Inverter', '100W Solar Panel']
+  },
+  {
+    id: 'plan-1000w',
+    title: '1000W & 450W Panel',
+    price: 150000,
+    description: 'Ideal for medium homes.',
+    specs: ['1000W Inverter', '450W Solar Panel']
+  },
+  {
+    id: 'plan-3300w',
+    title: '3300W & 1300W Panels',
+    price: 500000,
+    description: 'High capacity for full home.',
+    specs: ['3300W Inverter', '1300W Solar Panels']
+  }
+];
+
+const normalizePlans = (payload: unknown): Plan[] => {
+  if (Array.isArray(payload)) return payload as Plan[];
+
+  if (payload && typeof payload === 'object') {
+    const maybeData = (payload as { data?: unknown }).data;
+    if (Array.isArray(maybeData)) return maybeData as Plan[];
+  }
+
+  return [];
+};
+
 const initialFormData: FormData = {
   planId: '',
   phone: '',
+  inviteePhone: '',
   surname: '',
   firstName: '',
   middleName: '',
@@ -98,6 +135,7 @@ export default function SolarOrder() {
   const [loading, setLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Set<keyof FormData>>(new Set());
 
   useEffect(() => {
     const fetchData = async () => {
@@ -110,13 +148,10 @@ export default function SolarOrder() {
 
         if (plansRes.ok) {
           const plansData = await plansRes.json();
-          setPlans(plansData);
+          const normalizedPlans = normalizePlans(plansData);
+          setPlans(normalizedPlans.length ? normalizedPlans : DEFAULT_PLANS);
         } else {
-          setPlans([
-            { id: 'plan-300w', title: '300W & 100W Panel', price: 50000, description: 'Perfect for small energy needs.', specs: ['300W Inverter', '100W Solar Panel'] },
-            { id: 'plan-1000w', title: '1000W & 450W Panel', price: 150000, description: 'Ideal for medium homes.', specs: ['1000W Inverter', '450W Solar Panel'] },
-            { id: 'plan-3300w', title: '3300W & 1300W Panels', price: 500000, description: 'High capacity for full home.', specs: ['3300W Inverter', '1300W Solar Panels'] }
-          ]);
+          setPlans(DEFAULT_PLANS);
         }
 
         if (subRes.ok) {
@@ -126,6 +161,7 @@ export default function SolarOrder() {
       } catch (err) {
         console.error('Error fetching solar info:', err);
         setError('Failed to load solar information.');
+        setPlans(DEFAULT_PLANS);
       } finally {
         setLoading(false);
       }
@@ -136,7 +172,27 @@ export default function SolarOrder() {
 
   const handlePlanSelect = (planId: string) => {
     setFormData({ ...formData, planId });
+    setFieldErrors(new Set());
+    setError(null);
     setStep(2);
+  };
+
+  const getRequiredFields = (currentStep: number): (keyof FormData)[] => {
+    if (currentStep === 2) {
+      return [
+        'surname', 'firstName', 'gender', 'nationality', 'email', 'phone', 'occupation', 'nin',
+        'houseNumber', 'streetName', 'city', 'lga', 'state', 'country'
+      ];
+    }
+
+    if (currentStep === 3) {
+      return [
+        'grantorSurname', 'grantorFirstName', 'grantorGender', 'grantorNationality', 'grantorEmail', 'grantorPhone', 'grantorOccupation', 'grantorNin',
+        'grantorHouseNumber', 'grantorStreetName', 'grantorCity', 'grantorLga', 'grantorState', 'grantorCountry'
+      ];
+    }
+
+    return [];
   };
 
   const updateField = (field: keyof FormData, value: string) => {
@@ -144,6 +200,16 @@ export default function SolarOrder() {
       ...formData,
       [field]: value
     });
+
+    if (fieldErrors.has(field)) {
+      const nextErrors = new Set(fieldErrors);
+      nextErrors.delete(field);
+      setFieldErrors(nextErrors);
+    }
+
+    if (error) {
+      setError(null);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -174,21 +240,10 @@ export default function SolarOrder() {
   };
 
   const validateStep = (currentStep: number) => {
-    if (currentStep === 2) {
-      const buyerFields: (keyof FormData)[] = [
-        'surname', 'firstName', 'gender', 'nationality', 'email', 'phone', 'occupation', 'nin',
-        'houseNumber', 'streetName', 'city', 'lga', 'state', 'country'
-      ];
-      return buyerFields.every(field => formData[field]?.trim());
-    }
-    if (currentStep === 3) {
-      const grantorFields: (keyof FormData)[] = [
-        'grantorSurname', 'grantorFirstName', 'grantorGender', 'grantorNationality', 'grantorEmail', 'grantorPhone', 'grantorOccupation', 'grantorNin',
-        'grantorHouseNumber', 'grantorStreetName', 'grantorCity', 'grantorLga', 'grantorState', 'grantorCountry'
-      ];
-      return grantorFields.every(field => formData[field]?.trim());
-    }
-    return true;
+    const requiredFields = getRequiredFields(currentStep);
+    const missingFields = requiredFields.filter((field) => !formData[field]?.trim());
+    setFieldErrors(new Set(missingFields));
+    return missingFields.length === 0;
   };
 
   const renderStep = () => {
@@ -285,9 +340,8 @@ export default function SolarOrder() {
                   }`}
                   onClick={() => handlePlanSelect(plan.id)}
                 >
-                  {plan.id === '1000w' && (
+                  {plan.id === 'plan-1000w' && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full text-xs font-bold text-white shadow-xl flex items-center gap-1.5 uppercase tracking-widest z-20">
-                      <Star className="w-3.5 h-3.5 fill-white" /> Popular Choice
                     </div>
                   )}
                   
@@ -343,16 +397,17 @@ export default function SolarOrder() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-10">
-                <Input icon={<User />} label="Full Surname" value={formData.surname} onChange={(v) => updateField('surname', v)} placeholder="e.g., Doe" />
-                <Input icon={<User />} label="First Given Name" value={formData.firstName} onChange={(v) => updateField('firstName', v)} placeholder="e.g., John" />
+                <Input icon={<User />} label="Full Surname" value={formData.surname} onChange={(v) => updateField('surname', v)} placeholder="e.g., Doe" hasError={fieldErrors.has('surname')} />
+                <Input icon={<User />} label="First Given Name" value={formData.firstName} onChange={(v) => updateField('firstName', v)} placeholder="e.g., John" hasError={fieldErrors.has('firstName')} />
                 <Input icon={<User />} label="Middle Initial/Name" value={formData.middleName} onChange={(v) => updateField('middleName', v)} placeholder="Optional" />
-                <Select icon={<ShieldCheck />} label="Biological Gender" value={formData.gender} options={['Male', 'Female', 'Non-binary']} onChange={(v) => updateField('gender', v)} />
-                <Input icon={<Info />} label="Home Nationality" value={formData.nationality} onChange={(v) => updateField('nationality', v)} placeholder="e.g., Nigerian" />
+                <Select icon={<ShieldCheck />} label="Biological Gender" value={formData.gender} options={['Male', 'Female', 'Non-binary']} onChange={(v) => updateField('gender', v)} hasError={fieldErrors.has('gender')} />
+                <Input icon={<Info />} label="Home Nationality" value={formData.nationality} onChange={(v) => updateField('nationality', v)} placeholder="e.g., Nigerian" hasError={fieldErrors.has('nationality')} />
                 <Input icon={<Info />} label="Date of Birth" type="date" value={formData.dob} onChange={(v) => updateField('dob', v)} required={false} />
-                <Input icon={<Info />} label="Personal Email" type="email" value={formData.email} onChange={(v) => updateField('email', v)} placeholder="hello@zod.com" />
-                <Input icon={<Info />} label="Mobile Phone" type="tel" value={formData.phone} onChange={(v) => updateField('phone', v)} placeholder="+234..." />
-                <Input icon={<Info />} label="Current Occupation" value={formData.occupation} onChange={(v) => updateField('occupation', v)} placeholder="e.g., Tech Professional" />
-                <Input icon={<ShieldCheck />} label="National ID (NIN)" value={formData.nin} onChange={(v) => updateField('nin', v)} placeholder="11-digit number" />
+                <Input icon={<Info />} label="Personal Email" type="email" value={formData.email} onChange={(v) => updateField('email', v)} placeholder="hello@zod.com" hasError={fieldErrors.has('email')} />
+                <Input icon={<Info />} label="Mobile Phone" type="tel" value={formData.phone} onChange={(v) => updateField('phone', v)} placeholder="+234..." hasError={fieldErrors.has('phone')} />
+                <Input icon={<Info />} label="Invitee Phone Number" type="tel" value={formData.inviteePhone} onChange={(v) => updateField('inviteePhone', v)} placeholder="+234..." required={false} />
+                <Input icon={<Info />} label="Current Occupation" value={formData.occupation} onChange={(v) => updateField('occupation', v)} placeholder="e.g., Tech Professional" hasError={fieldErrors.has('occupation')} />
+                <Input icon={<ShieldCheck />} label="National ID (NIN)" value={formData.nin} onChange={(v) => updateField('nin', v)} placeholder="11-digit number" hasError={fieldErrors.has('nin')} />
               </div>
 
               <div className="space-y-8 pt-8 border-t border-white/10">
@@ -363,12 +418,12 @@ export default function SolarOrder() {
                   <h3 className="text-xl font-bold text-white tracking-wide">Residential Address</h3>
                 </div>
                 <div className="grid md:grid-cols-3 gap-8">
-                  <Input label="House/Bldg No." value={formData.houseNumber} onChange={(v) => updateField('houseNumber', v)} />
-                  <Input label="Street Address" value={formData.streetName} onChange={(v) => updateField('streetName', v)} />
-                  <Input label="City/Locality" value={formData.city} onChange={(v) => updateField('city', v)} />
-                  <Input label="LGA/District" value={formData.lga} onChange={(v) => updateField('lga', v)} />
-                  <Input label="Region/State" value={formData.state} onChange={(v) => updateField('state', v)} />
-                  <Input label="Country Origin" value={formData.country} onChange={(v) => updateField('country', v)} />
+                  <Input label="House/Bldg No." value={formData.houseNumber} onChange={(v) => updateField('houseNumber', v)} hasError={fieldErrors.has('houseNumber')} />
+                  <Input label="Street Address" value={formData.streetName} onChange={(v) => updateField('streetName', v)} hasError={fieldErrors.has('streetName')} />
+                  <Input label="City/Locality" value={formData.city} onChange={(v) => updateField('city', v)} hasError={fieldErrors.has('city')} />
+                  <Input label="LGA/District" value={formData.lga} onChange={(v) => updateField('lga', v)} hasError={fieldErrors.has('lga')} />
+                  <Input label="Region/State" value={formData.state} onChange={(v) => updateField('state', v)} hasError={fieldErrors.has('state')} />
+                  <Input label="Country Origin" value={formData.country} onChange={(v) => updateField('country', v)} hasError={fieldErrors.has('country')} />
                 </div>
               </div>
 
@@ -380,7 +435,14 @@ export default function SolarOrder() {
                   Back to Plans
                 </button>
                 <button 
-                  onClick={() => validateStep(2) ? setStep(3) : setError('Please fill in all mandatory fields.')} 
+                  onClick={() => {
+                    if (validateStep(2)) {
+                      setError(null);
+                      setStep(3);
+                    } else {
+                      setError('Please fill in all mandatory fields.');
+                    }
+                  }} 
                   className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-10 py-5 rounded-2xl font-bold text-lg hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] transition-all flex items-center gap-3 group"
                 >
                   Continue to Guarantor <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
@@ -404,16 +466,16 @@ export default function SolarOrder() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-10">
-                <Input icon={<User />} label="Guarantor Surname" value={formData.grantorSurname} onChange={(v) => updateField('grantorSurname', v)} />
-                <Input icon={<User />} label="Guarantor First Name" value={formData.grantorFirstName} onChange={(v) => updateField('grantorFirstName', v)} />
+                <Input icon={<User />} label="Guarantor Surname" value={formData.grantorSurname} onChange={(v) => updateField('grantorSurname', v)} hasError={fieldErrors.has('grantorSurname')} />
+                <Input icon={<User />} label="Guarantor First Name" value={formData.grantorFirstName} onChange={(v) => updateField('grantorFirstName', v)} hasError={fieldErrors.has('grantorFirstName')} />
                 <Input icon={<User />} label="Guarantor Middle Name" value={formData.grantorMiddleName} onChange={(v) => updateField('grantorMiddleName', v)} />
-                <Select icon={<ShieldCheck />} label="Guarantor Gender" value={formData.grantorGender} options={['Male', 'Female', 'Other']} onChange={(v) => updateField('grantorGender', v)} />
-                <Input icon={<Info />} label="Nationality" value={formData.grantorNationality} onChange={(v) => updateField('grantorNationality', v)} />
+                <Select icon={<ShieldCheck />} label="Guarantor Gender" value={formData.grantorGender} options={['Male', 'Female', 'Other']} onChange={(v) => updateField('grantorGender', v)} hasError={fieldErrors.has('grantorGender')} />
+                <Input icon={<Info />} label="Nationality" value={formData.grantorNationality} onChange={(v) => updateField('grantorNationality', v)} hasError={fieldErrors.has('grantorNationality')} />
                 <Input icon={<Info />} label="Date of Birth" type="date" value={formData.grantorDob} onChange={(v) => updateField('grantorDob', v)} required={false} />
-                <Input icon={<Info />} label="Email Primary" type="email" value={formData.grantorEmail} onChange={(v) => updateField('grantorEmail', v)} />
-                <Input icon={<Info />} label="Contact Phone" type="tel" value={formData.grantorPhone} onChange={(v) => updateField('grantorPhone', v)} />
-                <Input icon={<Info />} label="Profession" value={formData.grantorOccupation} onChange={(v) => updateField('grantorOccupation', v)} />
-                <Input icon={<ShieldCheck />} label="NIN Identification" value={formData.grantorNin} onChange={(v) => updateField('grantorNin', v)} />
+                <Input icon={<Info />} label="Email Primary" type="email" value={formData.grantorEmail} onChange={(v) => updateField('grantorEmail', v)} hasError={fieldErrors.has('grantorEmail')} />
+                <Input icon={<Info />} label="Contact Phone" type="tel" value={formData.grantorPhone} onChange={(v) => updateField('grantorPhone', v)} hasError={fieldErrors.has('grantorPhone')} />
+                <Input icon={<Info />} label="Profession" value={formData.grantorOccupation} onChange={(v) => updateField('grantorOccupation', v)} hasError={fieldErrors.has('grantorOccupation')} />
+                <Input icon={<ShieldCheck />} label="NIN Identification" value={formData.grantorNin} onChange={(v) => updateField('grantorNin', v)} hasError={fieldErrors.has('grantorNin')} />
               </div>
 
               <div className="space-y-8 pt-8 border-t border-white/10">
@@ -424,12 +486,12 @@ export default function SolarOrder() {
                   <h3 className="text-xl font-bold text-white tracking-wide">Residential Address</h3>
                 </div>
                 <div className="grid md:grid-cols-3 gap-8">
-                  <Input label="House No." value={formData.grantorHouseNumber} onChange={(v) => updateField('grantorHouseNumber', v)} />
-                  <Input label="Street Name" value={formData.grantorStreetName} onChange={(v) => updateField('grantorStreetName', v)} />
-                  <Input label="City" value={formData.grantorCity} onChange={(v) => updateField('grantorCity', v)} />
-                  <Input label="LGA" value={formData.grantorLga} onChange={(v) => updateField('grantorLga', v)} />
-                  <Input label="State" value={formData.grantorState} onChange={(v) => updateField('grantorState', v)} />
-                  <Input label="Country" value={formData.grantorCountry} onChange={(v) => updateField('grantorCountry', v)} />
+                  <Input label="House No." value={formData.grantorHouseNumber} onChange={(v) => updateField('grantorHouseNumber', v)} hasError={fieldErrors.has('grantorHouseNumber')} />
+                  <Input label="Street Name" value={formData.grantorStreetName} onChange={(v) => updateField('grantorStreetName', v)} hasError={fieldErrors.has('grantorStreetName')} />
+                  <Input label="City" value={formData.grantorCity} onChange={(v) => updateField('grantorCity', v)} hasError={fieldErrors.has('grantorCity')} />
+                  <Input label="LGA" value={formData.grantorLga} onChange={(v) => updateField('grantorLga', v)} hasError={fieldErrors.has('grantorLga')} />
+                  <Input label="State" value={formData.grantorState} onChange={(v) => updateField('grantorState', v)} hasError={fieldErrors.has('grantorState')} />
+                  <Input label="Country" value={formData.grantorCountry} onChange={(v) => updateField('grantorCountry', v)} hasError={fieldErrors.has('grantorCountry')} />
                 </div>
               </div>
 
@@ -441,7 +503,14 @@ export default function SolarOrder() {
                   Back Details
                 </button>
                 <button 
-                  onClick={() => validateStep(3) ? setStep(4) : setError('Please fill in all mandatory fields.')}
+                  onClick={() => {
+                    if (validateStep(3)) {
+                      setError(null);
+                      setStep(4);
+                    } else {
+                      setError('Please fill in all mandatory fields.');
+                    }
+                  }}
                   className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-10 py-5 rounded-2xl font-bold text-lg hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all flex items-center gap-3 group"
                 >
                   Review Your Order <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
@@ -478,6 +547,7 @@ export default function SolarOrder() {
                       <div><span className="text-gray-500 block mb-0.5">Full Name</span> <span className="text-white font-medium">{formData.firstName} {formData.surname}</span></div>
                       <div><span className="text-gray-500 block mb-0.5">Email</span> <span className="text-white font-medium truncate">{formData.email}</span></div>
                       <div><span className="text-gray-500 block mb-0.5">Phone</span> <span className="text-white font-medium">{formData.phone}</span></div>
+                      <div><span className="text-gray-500 block mb-0.5">Invitee Phone</span> <span className="text-white font-medium">{formData.inviteePhone || '-'}</span></div>
                       <div><span className="text-gray-500 block mb-0.5">NIN</span> <span className="text-white font-medium">{formData.nin}</span></div>
                     </div>
                   </div>
@@ -610,15 +680,15 @@ export default function SolarOrder() {
   );
 }
 
-function Input({ label, value, onChange, type = 'text', placeholder = '', icon, required = true }: { label: string, value: string, onChange: (v: string) => void, type?: string, placeholder?: string, icon?: React.ReactNode, required?: boolean }) {
+function Input({ label, value, onChange, type = 'text', placeholder = '', icon, required = true, hasError = false }: { label: string, value: string, onChange: (v: string) => void, type?: string, placeholder?: string, icon?: React.ReactNode, required?: boolean, hasError?: boolean }) {
   return (
     <div className="space-y-2.5 group">
-      <label className="text-sm font-bold text-gray-400 ml-1 tracking-wide group-focus-within:text-cyan-400 transition-colors uppercase">
+      <label className={`text-sm font-bold ml-1 tracking-wide transition-colors uppercase ${hasError ? 'text-red-400 group-focus-within:text-red-400' : 'text-gray-400 group-focus-within:text-cyan-400'}`}>
         {label} {!required && <span className="text-xs text-gray-600 lowecase">(Optional)</span>}
       </label>
       <div className="relative">
         {icon && (
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-cyan-500 transition-colors">
+          <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${hasError ? 'text-red-400 group-focus-within:text-red-400' : 'text-gray-500 group-focus-within:text-cyan-500'}`}>
             {React.cloneElement(icon as React.ReactElement, { size: 18 })}
           </div>
         )}
@@ -627,28 +697,29 @@ function Input({ label, value, onChange, type = 'text', placeholder = '', icon, 
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className={`w-full bg-white/5 border border-white/10 rounded-2xl ${icon ? 'pl-11' : 'px-5'} py-4 text-white placeholder:text-gray-600 focus:border-cyan-500/50 focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all hover:bg-white/[0.07]`}
+          className={`w-full bg-white/5 border rounded-2xl ${icon ? 'pl-11' : 'px-5'} py-4 text-white placeholder:text-gray-600 outline-none transition-all hover:bg-white/[0.07] ${hasError ? 'border-red-500/60 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-white/10 focus:border-cyan-500/50 focus:ring-4 focus:ring-cyan-500/10'}`}
           required={required}
         />
       </div>
+      {hasError && <p className="text-xs text-red-400 ml-1">Required field</p>}
     </div>
   );
 }
 
-function Select({ label, value, options, onChange, icon }: { label: string, value: string, options: string[], onChange: (v: string) => void, icon?: React.ReactNode }) {
+function Select({ label, value, options, onChange, icon, hasError = false }: { label: string, value: string, options: string[], onChange: (v: string) => void, icon?: React.ReactNode, hasError?: boolean }) {
   return (
     <div className="space-y-2.5 group">
-      <label className="text-sm font-bold text-gray-400 ml-1 tracking-wide group-focus-within:text-cyan-400 transition-colors uppercase">{label}</label>
+      <label className={`text-sm font-bold ml-1 tracking-wide transition-colors uppercase ${hasError ? 'text-red-400 group-focus-within:text-red-400' : 'text-gray-400 group-focus-within:text-cyan-400'}`}>{label}</label>
       <div className="relative">
         {icon && (
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-cyan-500 transition-colors">
+          <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${hasError ? 'text-red-400 group-focus-within:text-red-400' : 'text-gray-500 group-focus-within:text-cyan-500'}`}>
             {React.cloneElement(icon as React.ReactElement, { size: 18 })}
           </div>
         )}
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full bg-white/5 border border-white/10 rounded-2xl ${icon ? 'pl-11' : 'px-5'} py-4 text-white focus:border-cyan-500/50 focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all appearance-none hover:bg-white/[0.07]`}
+          className={`w-full bg-white/5 border rounded-2xl ${icon ? 'pl-11' : 'px-5'} py-4 text-white outline-none transition-all appearance-none hover:bg-white/[0.07] ${hasError ? 'border-red-500/60 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' : 'border-white/10 focus:border-cyan-500/50 focus:ring-4 focus:ring-cyan-500/10'}`}
           required
         >
           <option value="" disabled className="bg-gray-950">Select {label}</option>
@@ -656,10 +727,11 @@ function Select({ label, value, options, onChange, icon }: { label: string, valu
             <option key={opt} value={opt} className="bg-gray-900 text-white">{opt}</option>
           ))}
         </select>
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+        <div className={`absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none ${hasError ? 'text-red-400' : 'text-gray-500'}`}>
           <ArrowRight className="w-4 h-4 rotate-90" />
         </div>
       </div>
+      {hasError && <p className="text-xs text-red-400 ml-1">Required field</p>}
     </div>
   );
 }
