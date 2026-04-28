@@ -6,6 +6,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const currentYear = new Date().getFullYear();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -191,7 +192,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-gray-400">© 2025 Zod. All rights reserved.</p>
+            <p className="text-sm text-gray-400">© {currentYear} Zod. All rights reserved.</p>
             <div className="flex gap-4">
               <a
                 href="#"
