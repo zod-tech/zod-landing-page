@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { useScrollAnimation, useParallax } from '../hooks/useScrollAnimation';
 import { Link } from 'react-router-dom';
-import SolarOrder from '../components/SolarOrder';
 
 export default function Home() {
   const [activeFeature, setActiveFeature] = useState(0);
@@ -376,8 +375,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      <SolarOrder />
 
       <section id="cta" className="py-24 relative overflow-hidden" ref={ctaSection.ref}>
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-emerald-500/10"></div>

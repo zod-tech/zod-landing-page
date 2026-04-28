@@ -1,10 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
-import Features from './pages/Features';
-import Showcase from './pages/Showcase';
-import Community from './pages/Community';
 import Pricing from './pages/Pricing';
+import Solar from './pages/Solar';
 import About from './pages/About';
 import Blog from './pages/Blog';
 import Careers from './pages/Careers';
@@ -22,6 +20,7 @@ function App() {
           <Route path="/showcase" element={<Blog />} />
           <Route path="/community" element={<Careers />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/solar" element={<Solar />} />
           <Route path="/about" element={<About />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/careers" element={<Careers />} />
